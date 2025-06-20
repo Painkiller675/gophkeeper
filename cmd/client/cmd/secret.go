@@ -1,11 +1,15 @@
 package cmd
 
 import (
+	"crypto/tls"
+	"crypto/x509"
+	"fmt"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/credentials"
+	"os"
 
 	"github.com/Painkiller675/gophkeeper/internal/client/interceptors"
 	"github.com/Painkiller675/gophkeeper/internal/client/models"
@@ -35,6 +39,23 @@ func decryptSecret(b []byte) (models.Secret, error) {
 	return models.DecodeSecret(encoded)
 }
 
+func LaadTLSCredentials() (credentials.TransportCredentials, error) {
+	// load the certificate of the CA who signed server's certificate
+	pemServerCA, err := os.ReadFile("../../internal/cert/ca-cert.pem") // viper.GetString("tls.server-ca")
+	if err != nil {
+		return nil, err
+	}
+	certPool := x509.NewCertPool()
+	if certPool.AppendCertsFromPEM(pemServerCA) {
+		return nil, fmt.Errorf("failed to add server CA to cert pool")
+	}
+
+	config := &tls.Config{
+		RootCAs: certPool,
+	}
+	return credentials.NewTLS(config), nil
+}
+
 var secretCmd = &cobra.Command{
 	Use:   "secret",
 	Short: "Manage user private data",
@@ -48,9 +69,15 @@ var secretCmd = &cobra.Command{
 		}
 		interceptor := interceptors.NewAuthInterceptor(viper.GetString("token"))
 
+		// get the credentials object
+		tlsCredentials, err := LaadTLSCredentials()
+		if err != nil {
+			log.Fatal().Err(err).Msg("Failed to load TLS credentials")
+		}
+
 		connection, err := grpc.NewClient(
 			viper.GetString("grpc.address"),
-			grpc.WithTransportCredentials(insecure.NewCredentials()),
+			grpc.WithTransportCredentials(tlsCredentials),
 			grpc.WithUnaryInterceptor(interceptor.Unary()),
 		)
 		if err != nil {

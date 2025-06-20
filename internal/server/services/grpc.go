@@ -2,6 +2,8 @@ package services
 
 import (
 	"context"
+	"crypto/tls"
+	"google.golang.org/grpc/credentials"
 	"net"
 
 	"github.com/rs/zerolog/log"
@@ -51,6 +53,20 @@ func NewServer(address string, options ...Option) *Server {
 	return server
 }
 
+func loadTLSCredentials() (credentials.TransportCredentials, error) {
+	// Load server's certificate & private key
+	serverCert, err := tls.LoadX509KeyPair("../../internal/cert/server-cert.pem", "../../internal/cert/server-key.pem")
+	if err != nil {
+		return nil, err
+	}
+	// create & return credentials
+	config := &tls.Config{
+		Certificates: []tls.Certificate{serverCert},
+		ClientAuth:   tls.NoClientCert,
+	}
+	return credentials.NewTLS(config), nil
+}
+
 // Run sets some interceptors, registers services and launches gRPC server
 func (s *Server) Run(ctx context.Context) {
 	listen, err := net.Listen("tcp", s.Address)
@@ -58,7 +74,14 @@ func (s *Server) Run(ctx context.Context) {
 		log.Fatal().Err(err).Msg("Failed to start grpc server")
 	}
 
+	// get the tls credentials object
+	tlsCredentials, err := loadTLSCredentials()
+	if err != nil {
+		log.Fatal()
+	}
+
 	grpcServer := grpc.NewServer(
+		grpc.Creds(tlsCredentials),
 		grpc.ChainUnaryInterceptor(s.UnaryInterceptors...),
 		grpc.ChainStreamInterceptor(s.StreamInterceptors...),
 	)

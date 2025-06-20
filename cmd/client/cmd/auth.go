@@ -1,13 +1,11 @@
 package cmd
 
 import (
+	pb "github.com/Painkiller675/gophkeeper/internal/proto"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
-
-	pb "github.com/Painkiller675/gophkeeper/internal/proto"
 )
 
 var (
@@ -19,9 +17,14 @@ var authCmd = &cobra.Command{
 	Use:   "auth",
 	Short: "Manage user registration, authentication and authorization",
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
-		connection, err := grpc.Dial(
+		// get the credentials object
+		tlsCredentials, err := LaadTLSCredentials()
+		if err != nil {
+			log.Fatal().Err(err).Msg("Failed to load TLS credentials")
+		}
+		connection, err := grpc.NewClient(
 			viper.GetString("grpc.address"),
-			grpc.WithTransportCredentials(insecure.NewCredentials()))
+			grpc.WithTransportCredentials(tlsCredentials))
 		if err != nil {
 			log.Fatal().Err(err).Msg("Failed to create client connection")
 		}

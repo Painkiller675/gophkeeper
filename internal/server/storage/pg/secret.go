@@ -96,6 +96,7 @@ func (s *secretStorage) DeleteSecret(ctx context.Context, secret *models.Secret)
 func (s *secretStorage) ListSecrets(ctx context.Context, userID int) ([]*models.Secret, error) {
 	rows, err := s.db.QueryContext(
 		ctx, `SELECT name, version, content FROM secrets WHERE owner_id = ($1)`, userID)
+	defer rows.Close()
 	if err != nil {
 		return nil, err
 	}
@@ -109,6 +110,14 @@ func (s *secretStorage) ListSecrets(ctx context.Context, userID int) ([]*models.
 			return nil, err
 		}
 		secrets = append(secrets, secret)
+	}
+	/*
+		При переборе строк rows.Next() возвращает bool, в котором false который может быть результатом как нормального
+		достижения конца списка, так и возникшей ошибки. Поэтому после цикла необходимо проверить, не по ошибке ли мы
+		вывалились, и вернуть эту ошибку:
+	*/
+	if err := rows.Err(); err != nil {
+		return nil, err
 	}
 	return secrets, nil
 }
