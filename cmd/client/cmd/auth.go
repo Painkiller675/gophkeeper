@@ -18,13 +18,13 @@ var authCmd = &cobra.Command{
 	Short: "Manage user registration, authentication and authorization",
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 		// get the credentials object
-		tlsCredentials, err := LaadTLSCredentials()
+		tlsCreds, err := generateTLSCreds()
 		if err != nil {
-			log.Fatal().Err(err).Msg("Failed to load TLS credentials")
+			panic(err)
 		}
 		connection, err := grpc.NewClient(
 			viper.GetString("grpc.address"),
-			grpc.WithTransportCredentials(tlsCredentials))
+			grpc.WithTransportCredentials(tlsCreds))
 		if err != nil {
 			log.Fatal().Err(err).Msg("Failed to create client connection")
 		}

@@ -56,6 +56,13 @@ func LaadTLSCredentials() (credentials.TransportCredentials, error) {
 	return credentials.NewTLS(config), nil
 }
 
+func generateTLSCreds() (credentials.TransportCredentials, error) {
+	//
+	certFile := "../../internal/cert/ca.crt"
+
+	return credentials.NewClientTLSFromFile(certFile, "")
+}
+
 var secretCmd = &cobra.Command{
 	Use:   "secret",
 	Short: "Manage user private data",
@@ -70,14 +77,14 @@ var secretCmd = &cobra.Command{
 		interceptor := interceptors.NewAuthInterceptor(viper.GetString("token"))
 
 		// get the credentials object
-		tlsCredentials, err := LaadTLSCredentials()
+		tlsCreds, err := generateTLSCreds()
 		if err != nil {
-			log.Fatal().Err(err).Msg("Failed to load TLS credentials")
+			panic(err)
 		}
 
 		connection, err := grpc.NewClient(
 			viper.GetString("grpc.address"),
-			grpc.WithTransportCredentials(tlsCredentials),
+			grpc.WithTransportCredentials(tlsCreds),
 			grpc.WithUnaryInterceptor(interceptor.Unary()),
 		)
 		if err != nil {

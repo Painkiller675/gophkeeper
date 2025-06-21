@@ -67,6 +67,13 @@ func loadTLSCredentials() (credentials.TransportCredentials, error) {
 	return credentials.NewTLS(config), nil
 }
 
+func generateTLSCreds() (credentials.TransportCredentials, error) {
+	certFile := "../../cert/server.crt"
+	keyFile := "../../cert/server.key"
+
+	return credentials.NewServerTLSFromFile(certFile, keyFile)
+}
+
 // Run sets some interceptors, registers services and launches gRPC server
 func (s *Server) Run(ctx context.Context) {
 	listen, err := net.Listen("tcp", s.Address)
@@ -75,13 +82,13 @@ func (s *Server) Run(ctx context.Context) {
 	}
 
 	// get the tls credentials object
-	tlsCredentials, err := loadTLSCredentials()
+	tlsCreds, err := generateTLSCreds()
 	if err != nil {
-		log.Fatal()
+		panic(err)
 	}
 
 	grpcServer := grpc.NewServer(
-		grpc.Creds(tlsCredentials),
+		grpc.Creds(tlsCreds),
 		grpc.ChainUnaryInterceptor(s.UnaryInterceptors...),
 		grpc.ChainStreamInterceptor(s.StreamInterceptors...),
 	)
