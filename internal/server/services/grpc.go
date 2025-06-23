@@ -68,8 +68,8 @@ func loadTLSCredentials() (credentials.TransportCredentials, error) {
 }
 
 func generateTLSCreds() (credentials.TransportCredentials, error) {
-	certFile := "../../cert/server.crt"
-	keyFile := "../../cert/server.key"
+	certFile := "../../internal/cert/server.crt"
+	keyFile := "../../internal/cert/server.key"
 
 	return credentials.NewServerTLSFromFile(certFile, keyFile)
 }

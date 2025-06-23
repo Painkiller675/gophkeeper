@@ -16,7 +16,7 @@ var errInvalidLength = errors.New("invalid length")
 
 var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
 
-// RandomString generates random string of the set length генерирует случайную строку заданной длины из символов letters
+// RandomString generates random string of the set length from the letters
 func RandomString(length int) (string, error) {
 	if length <= 0 {
 		return "", errInvalidLength

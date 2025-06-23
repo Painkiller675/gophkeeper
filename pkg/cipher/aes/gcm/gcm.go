@@ -1,3 +1,4 @@
+// gcm is used for encrypting and decrypting data
 package gcm
 
 import (
@@ -44,18 +45,19 @@ func New(password string) (*Cipher, error) {
 
 // Encrypt encrypt byte sequence
 func (c Cipher) Encrypt(plaintext []byte) ([]byte, error) {
+	// create aes block cipher
 	aesCipher, err := aes.NewCipher(c.key)
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to create aes block cipher")
 		return nil, err
 	}
-
+	// to cipher a message of any length we use the GCM (Galois/Counter Mode) algorithm
 	aesGCM, err := cipher.NewGCM(aesCipher)
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to create aes block cipher in gcm mode")
 		return nil, err
 	}
-
+	// seal - to encrypt
 	return aesGCM.Seal(nil, c.nonce, plaintext, nil), nil
 }
 
