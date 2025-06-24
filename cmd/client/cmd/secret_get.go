@@ -3,6 +3,7 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"github.com/Painkiller675/gophkeeper/internal/client/models"
 
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
@@ -25,10 +26,14 @@ var getSecretCmd = &cobra.Command{
 		if err != nil {
 			log.Fatal().Err(err).Msg("Failed to get secret")
 		}
-
-		secret, err := decryptSecret(resp.GetContent())
+		// I've changed decrypt to deserialization here
+		//secret, err := decryptSecret(resp.GetContent()) // TODO: REMOVE
+		//if err != nil {
+		//	log.Fatal().Err(err).Msg("Failed to decrypt secret")
+		//}
+		secret, err := models.DecodeSecret(resp.GetContent())
 		if err != nil {
-			log.Fatal().Err(err).Msg("Failed to decrypt secret")
+			log.Fatal().Err(err).Msg("Failed to decrypt secret (deserialization)")
 		}
 
 		fmt.Printf("%s\n", secret)

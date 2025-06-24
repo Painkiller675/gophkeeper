@@ -1,0 +1,25 @@
+./client auth register -e user5@mail.ru -p 123456
+
+./client auth login -e user1@mail.ru -p 123456
+
+
+
+
+./client secret create card \
+  --name vi \
+  --number 111222333444 \
+  --date 12/26 \
+  --holder Dmitry \
+  --code 666
+
+
+./client secret get --name vi
+
+# for current process only
+set TOKEN="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NTA3NzcwODQsImp0aSI6ImM2YzExMDEzLTFlNzgtNGZiYS05YjM0LTZmZTM1ODM0YjFlMSIsImlhdCI6MTc1MDc3NzA4NCwidXNlcl9pZCI6MTF9.lcalVTMcjiNh5zkaJvv2dY2fc6ig8ugBARRX8OkRbiY
+"
+# for current process and derivates
+export TOKEN=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NTA3ODIyMTQsImp0aSI6ImYxNzAzMjJjLWY1ZTgtNDE1Mi1hYzU3LTA4NjY3NDQwYzIxNiIsImlhdCI6MTc1MDc4MjIxNCwidXNlcl9pZCI6MTJ9.rXWbkKVuehAhEksh8Huv4KZeNmsccwx4JGKxn2ainXc
+
+# if I use debug mode I must use certFile := "internal/cert/ca-cert.pem"
+when it's built - certFile := "../../internal/cert/ca.crt"

@@ -3,6 +3,7 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"github.com/Painkiller675/gophkeeper/internal/client/models"
 
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
@@ -20,9 +21,9 @@ var listSecretCmd = &cobra.Command{
 		}
 
 		for _, info := range resp.GetSecrets() {
-			secret, err := decryptSecret(info.GetContent())
+			secret, err := models.DecodeSecret(info.GetContent())
 			if err != nil {
-				log.Fatal().Err(err).Msg("Failed to decrypt secret")
+				log.Fatal().Err(err).Msg("Failed to decode(des) secret")
 			}
 
 			fmt.Printf("%s\n", secret)

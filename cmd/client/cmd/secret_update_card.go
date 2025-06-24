@@ -52,15 +52,15 @@ var updateCardSecretCmd = &cobra.Command{
 			Holder:       holder,
 		}
 
-		content, err := encryptSecret(card)
+		encoded, err := models.EncodeSecret(card) // use Marshal here
 		if err != nil {
-			log.Fatal().Msgf("Failed to encrypt secret: %v", err)
+			log.Fatal().Msgf("Failed to serialize secret: %v", err)
 			return
 		}
 
 		resp, err := secretClient.UpdateSecret(context.Background(), &pb.UpdateSecretRequest{
 			Name:    name,
-			Content: content,
+			Content: encoded,
 		})
 		if err != nil {
 			log.Fatal().Msgf("Failed to update secret: %v", err)

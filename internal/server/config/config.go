@@ -1,13 +1,24 @@
 package config
 
-import "time"
+import (
+	"github.com/Painkiller675/gophkeeper/pkg/cipher/aes/gcm"
+	"time"
+)
 
 // Config server settings
 type Config struct {
-	GRPC GRPCConfig    `mapstructure:"grpc"`
-	DB   StorageConfig `mapstructure:"db"`
-	Auth AuthConfig    `mapstructure:"auth"`
-	Hash HashConfig    `mapstructure:"hasher"`
+	GRPC       GRPCConfig       `mapstructure:"grpc"`
+	DB         StorageConfig    `mapstructure:"db"`
+	Auth       AuthConfig       `mapstructure:"auth"`
+	Hash       HashConfig       `mapstructure:"hasher"`
+	Encryption EncryptionConfig `mapstructure:"encryption"`
+}
+
+var BlockC *gcm.Cipher
+
+// EncryptionConfig cypher settings
+type EncryptionConfig struct {
+	Key string `mapstructure:"key"`
 }
 
 // GRPCConfig  some gRPC settings

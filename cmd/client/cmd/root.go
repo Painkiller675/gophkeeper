@@ -51,9 +51,6 @@ func init() {
 	rootCmd.PersistentFlags().StringP(
 		"grpc-address", "g", "", "Server grpc address")
 
-	rootCmd.PersistentFlags().StringP(
-		"encryption-key", "k", "", "Secret encryption key")
-
 	cobra.OnInitialize(initConfig)
 }
 

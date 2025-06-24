@@ -16,10 +16,11 @@ import (
 var (
 	cfgFile  string
 	defaults = map[string]interface{}{
-		"grpc.address": "127.0.0.1:8081",
-		"db.url":       "",
-		"auth.key":     "",
-		"hasher.key":   "",
+		"grpc.address":   "127.0.0.1:8081",
+		"db.url":         "",
+		"auth.key":       "",
+		"hasher.key":     "",
+		"encryption.key": "WYJcWgkItShq513L21E1CFuz6uQWDy3r",
 	}
 )
 
@@ -60,6 +61,9 @@ func init() {
 
 	rootCmd.PersistentFlags().StringP(
 		"hasher-key", "i", "", "Hash key")
+
+	rootCmd.PersistentFlags().StringP(
+		"encryption-key", "s", "", "Secret encryption key")
 	// it will be executed before the Execute func
 	cobra.OnInitialize(initConfig)
 }
@@ -91,7 +95,7 @@ func initConfig() {
 	// read some .env to replace options from .yaml with them
 	viper.AutomaticEnv()
 	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_", ".", "_"))
-	// checking
+	// checking and binding
 	rootCmd.Flags().VisitAll(func(flag *pflag.Flag) {
 		key := strings.ReplaceAll(flag.Name, "-", ".")
 		if err := viper.BindPFlag(key, flag); err != nil {

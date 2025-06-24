@@ -38,15 +38,15 @@ var createCredentialsSecretCmd = &cobra.Command{
 			Password: password,
 		}
 
-		content, err := encryptSecret(credentials)
+		serialized, err := models.EncodeSecret(credentials) // use Marshal here
 		if err != nil {
-			log.Fatal().Msgf("Failed to encrypt secret: %v", err)
+			log.Fatal().Msgf("Failed to serialize secret: %v", err)
 			return
 		}
 
 		resp, err := secretClient.CreateSecret(context.Background(), &pb.CreateSecretRequest{
 			Name:    name,
-			Content: content,
+			Content: serialized,
 		})
 		if err != nil {
 			log.Fatal().Msgf("Failed to create secret: %v", err)

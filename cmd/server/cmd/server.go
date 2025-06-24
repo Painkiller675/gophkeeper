@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"context"
+	"github.com/Painkiller675/gophkeeper/pkg/cipher/aes/gcm"
 	"os/signal"
 	"sync"
 	"syscall"
@@ -29,12 +30,21 @@ var serverCmd = &cobra.Command{
 		}
 		log.Info().Msgf("Start grpc server: %s", cfg.GRPC.Address)
 
+		// let's create the cipher block
+		cipher, err := gcm.New(viper.GetString("encryption.key"))
+		if err != nil {
+			log.Fatal().Err(err).Msg("Failed to create cipher")
+		}
+		// fill a config value
+		config.BlockC = cipher
+
 		var wg sync.WaitGroup
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
 			server.New(cfg).Run(ctx)
 		}()
+
 		wg.Wait()
 	},
 }

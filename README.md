@@ -19,6 +19,8 @@ auth:
   expiration_time: 24h
 hasher:
   key: jc7YSHpH287)(*2bSw
+encryption:
+  key: WYJcWgkItShq513L21E1CFuz6uQWDy3r
 ```
 
 Пример настройки сервера через переменные окружения:
@@ -31,6 +33,7 @@ DB_URL=postgres://postgres:1234@localhost:5432/keeperdb?sslmode=disable
 AUTH_KEY=xiuw1bi4r98vd1(&*7
 AUTH_EXPIRATION_TIME=24h
 HASHER_KEY=jc7YSHpH287)(*2bSw
+ENCRYPTION_KEY=WYJcWgkItShq513L21E1CFuz6uQWDy3r
 ```
 
 После настройки запуск серверной части осуществляется командной:
@@ -49,15 +52,12 @@ HASHER_KEY=jc7YSHpH287)(*2bSw
 
 grpc:
   address: 127.0.0.1:8081
-encryption:
-  key: WYJcWgkItShq513L21E1CFuz6uQWDy3r
-```
 
+```
 Пример настройки клиента c использованием переменных окружения:
 
 ```
 # .env
 
 GRPC_ADDRESS=127.0.0.1:8081
-ENCRYPTION_KEY=WYJcWgkItShq513L21E1CFuz6uQWDy3r
 ```

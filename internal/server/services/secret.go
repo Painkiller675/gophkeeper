@@ -3,13 +3,14 @@ package services
 import (
 	"context"
 	"errors"
-
 	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
+	//sCm "github.com/Painkiller675/gophkeeper/cmd/server/cmd"
+	clMod "github.com/Painkiller675/gophkeeper/internal/client/models"
 	pb "github.com/Painkiller675/gophkeeper/internal/proto"
 	"github.com/Painkiller675/gophkeeper/internal/server/config"
 	"github.com/Painkiller675/gophkeeper/internal/server/interceptors"
@@ -17,6 +18,21 @@ import (
 	"github.com/Painkiller675/gophkeeper/internal/server/storage"
 	"github.com/Painkiller675/gophkeeper/internal/server/storage/pg"
 )
+
+//var (
+//	BlockCipher cipher.BlockCipher
+//)
+
+/*
+	func init() {
+		// let's create the cipher block
+		cipher, err := gcm.New(viper.GetString("encryption.key"))
+		if err != nil {
+			log.Fatal().Err(err).Msg("Failed to create cipher")
+		}
+		BlockCipher = cipher
+	}
+*/
 
 // SecretService is an implementation of proto.SecretServiceServer
 type SecretService struct {
@@ -35,6 +51,16 @@ func NewSecretService(cfg config.Config) *SecretService {
 	}
 
 	return &SecretService{SecretStorage: secretStorage}
+}
+
+// auxiliary functions for encryptions / decryptions
+
+func encryptSecret(s clMod.Secret) ([]byte, error) {
+	encoded, err := clMod.EncodeSecret(s) // use Marshal here
+	if err != nil {
+		return nil, err
+	}
+	return config.BlockC.Encrypt(encoded)
 }
 
 // RegisterService register service SecretService on a gRPC server
@@ -63,10 +89,16 @@ func (srv *SecretService) GetSecret(
 		}
 		return nil, status.Error(codes.Internal, "failed to get secret")
 	}
+	// ******************
+	// decrypt secret
+	decr_sec, err := config.BlockC.Decrypt(secret.Content)
+	if err != nil {
+		return nil, status.Error(codes.Internal, "failed to decrypt secret")
+	}
 
 	return &pb.GetSecretResponse{
 		Name:    secret.Name,
-		Content: secret.Content,
+		Content: decr_sec,
 		Version: secret.Version.String(),
 	}, nil
 }
@@ -88,9 +120,21 @@ func (srv *SecretService) CreateSecret(
 		return nil, status.Error(codes.Unauthenticated, "empty user id")
 	}
 
+	// initial decryption (deserialization)
+	//init_dec, err := clMod.DecodeSecret(request.GetContent())
+	//if err != nil {
+	//	log.Fatal().Msgf("Failed to decrypt secret: %v", err)
+	//	return nil, status.Error(codes.Internal, "failed to decode secret")
+	//}
+	// let's encrypt it to store
+	content, err := config.BlockC.Encrypt(request.GetContent()) // TODO: replace
+	if err != nil {
+		log.Fatal().Msgf("Failed to encrypt secret: %v", err)
+		return nil, status.Error(codes.Internal, "failed to create secret (encrypt)")
+	}
 	secret, err := srv.SecretStorage.CreateSecret(ctx, &models.Secret{
 		Name:    request.GetName(),
-		Content: request.GetContent(),
+		Content: content,
 		Version: uuid.UUID{},
 		OwnerID: userID,
 	})
@@ -123,9 +167,16 @@ func (srv *SecretService) UpdateSecret(
 		return nil, status.Error(codes.Unauthenticated, "empty user id")
 	}
 
+	// let's encrypt the updating info
+	content, err := config.BlockC.Encrypt(request.GetContent()) // TODO: replace
+	if err != nil {
+		log.Fatal().Msgf("Failed to encrypt secret: %v", err)
+		return nil, status.Error(codes.Internal, "failed to create secret (encrypt)")
+	}
+
 	secret, err := srv.SecretStorage.UpdateSecret(ctx, &models.Secret{
 		Name:    request.GetName(),
-		Content: request.GetContent(),
+		Content: content,
 		OwnerID: userID,
 	})
 	if err != nil {
@@ -187,9 +238,14 @@ func (srv *SecretService) ListSecrets(
 
 	pbSecrets := make([]*pb.SecretInfo, 0, len(secrets))
 	for _, secret := range secrets {
+		// decrypt each secret
+		decr_sec, err := config.BlockC.Decrypt(secret.Content)
+		if err != nil {
+			return nil, status.Error(codes.Internal, "failed to decrypt secret")
+		}
 		pbSecrets = append(pbSecrets, &pb.SecretInfo{
 			Name:    secret.Name,
-			Content: secret.Content,
+			Content: decr_sec,
 			Version: secret.Version.String(),
 		})
 	}
