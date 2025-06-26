@@ -51,6 +51,9 @@ var secretCmd = &cobra.Command{
 		}
 
 		secretClient = pb.NewSecretServiceClient(connection)
+
+		// try to create a local database
+
 	},
 }
 
