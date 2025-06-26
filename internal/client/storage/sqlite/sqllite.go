@@ -14,6 +14,7 @@ import (
 type localSecret struct {
 	Content []byte
 	Version string
+	Name    string
 }
 
 // LocalStorage represents a local client sqlite storage struct
@@ -55,7 +56,7 @@ func initLocalDG() (*sql.DB, error) {
 	return db, nil
 }
 
-// GetLocalSecret - returns a specific secret in offline mode
+// GetLocalSecret  returns a specific secret in offline mode
 func (ls *LocalStorage) GetLocalSecret(ctx context.Context, name string) (*localSecret, error) {
 	row := ls.LocalDB.QueryRowContext(
 		ctx,
@@ -68,6 +69,35 @@ func (ls *LocalStorage) GetLocalSecret(ctx context.Context, name string) (*local
 		return &localSecret{}, storage.ErrSecretNotFound
 	}
 	return localSec, err
+}
+
+// GetLocalList returns the list of secrets in offline mode (from the local database)
+func (ls *LocalStorage) GetLocalList(ctx context.Context) ([]*localSecret, error) {
+	rows, err := ls.LocalDB.QueryContext(
+		ctx, `SELECT name, version, content FROM secrets`)
+	defer rows.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	secrets := make([]*localSecret, 0)
+	for rows.Next() {
+		secret := &localSecret{}
+		if err = rows.Scan(&secret.Name, &secret.Version, &secret.Content); err != nil {
+			return nil, err
+		}
+		secrets = append(secrets, secret)
+	}
+	/*
+		При переборе строк rows.Next() возвращает bool, в котором false который может быть результатом как нормального
+		достижения конца списка, так и возникшей ошибки. Поэтому после цикла необходимо проверить, не по ошибке ли мы
+		вывалились, и вернуть эту ошибку:
+	*/
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return secrets, nil
+
 }
 
 // SyncLocalSecrets - synchronize remote database with a local one

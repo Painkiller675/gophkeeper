@@ -43,7 +43,7 @@ var getSecretCmd = &cobra.Command{
 				log.Fatal().Err(err).Msg("Failed to decode secret from the local database")
 			}
 			// show the info needed
-			fmt.Printf("%s ---  %s\n", decCon, localSec.Version)
+			fmt.Printf("%s ---  %s --- %s\n", localSec.Name, localSec.Version, decCon)
 			return
 		} //
 		// I've changed decrypt to deserialization here
