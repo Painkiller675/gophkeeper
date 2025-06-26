@@ -3,12 +3,12 @@ package cmd
 import (
 	"context"
 	"fmt"
-	"github.com/Painkiller675/gophkeeper/internal/client/models"
-	"github.com/Painkiller675/gophkeeper/internal/client/storage/sqlite"
 
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 
+	"github.com/Painkiller675/gophkeeper/internal/client/models"
+	"github.com/Painkiller675/gophkeeper/internal/client/storage/sqlite"
 	pb "github.com/Painkiller675/gophkeeper/internal/proto"
 )
 
@@ -37,10 +37,12 @@ var getSecretCmd = &cobra.Command{
 			if err != nil {
 				log.Fatal().Err(err).Msg("Failed to get secret from the local database")
 			}
+			// decode content to show
 			decCon, err := models.DecodeSecret(localSec.Content)
 			if err != nil {
 				log.Fatal().Err(err).Msg("Failed to decode secret from the local database")
 			}
+			// show the info needed
 			fmt.Printf("%s ---  %s\n", decCon, localSec.Version)
 			return
 		} //
