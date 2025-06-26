@@ -3,10 +3,11 @@ package cmd
 import (
 	"context"
 	"fmt"
-	"github.com/Painkiller675/gophkeeper/internal/client/storage/sqlite"
+
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 
+	"github.com/Painkiller675/gophkeeper/internal/client/storage/sqlite"
 	pb "github.com/Painkiller675/gophkeeper/internal/proto"
 )
 

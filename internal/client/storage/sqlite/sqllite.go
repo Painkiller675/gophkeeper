@@ -4,9 +4,10 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"log"
+
 	"github.com/Painkiller675/gophkeeper/internal/proto"
 	"github.com/Painkiller675/gophkeeper/internal/server/storage"
-	"log"
 )
 
 type localSecret struct {
